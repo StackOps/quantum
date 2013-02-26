@@ -1,0 +1,2 @@
+etc/quantum/plugins/nec/* etc/quantum/plugins/nec
+etc/quantum/rootwrap.d/nec-plugin.filters etc/quantum/rootwrap.d

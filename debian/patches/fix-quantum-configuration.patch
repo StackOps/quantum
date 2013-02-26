@@ -1,0 +1,179 @@
+From e34044fa55352d28a5e82403ac9c3873bb873b50 Mon Sep 17 00:00:00 2001
+From: Chuck Short <chuck.short@canonical.com>
+Date: Tue, 4 Sep 2012 13:16:48 -0500
+Subject: [PATCH] Fix quantum configuration files
+
+Fix quantum configuration files for quantum and ubuntu.
+
+Signed-off-by: Chuck Short <chuck.short@canonical.com>
+---
+ etc/dhcp_agent.ini                                     |    4 ++--
+ etc/l3_agent.ini                                       |    2 +-
+ etc/quantum.conf                                       |    2 +-
+ etc/quantum/plugins/linuxbridge/linuxbridge_conf.ini   |    4 ++--
+ etc/quantum/plugins/metaplugin/metaplugin.ini          |    2 +-
+ etc/quantum/plugins/nec/nec.ini                        |    4 ++--
+ etc/quantum/plugins/nicira/nvp.ini                     |    2 +-
+ etc/quantum/plugins/openvswitch/ovs_quantum_plugin.ini |    4 ++--
+ etc/quantum/plugins/ryu/ryu.ini                        |    4 ++--
+ 9 files changed, 14 insertions(+), 14 deletions(-)
+
+Index: quantum-2012.2/etc/dhcp_agent.ini
+===================================================================
+--- quantum-2012.2.orig/etc/dhcp_agent.ini	2012-09-11 11:12:21.000000000 -0700
++++ quantum-2012.2/etc/dhcp_agent.ini	2012-09-11 11:12:52.024201273 -0700
+@@ -5,7 +5,7 @@
+ # Where to store dnsmasq state files.  This directory must be writable by the
+ # user executing the agent. The value below is compatible with a default
+ # devstack installation.
+-state_path = /opt/stack/data
++state_path = /var/lib/quantum
+ 
+ # The DHCP agent will resync its state with Quantum to recover from any
+ # transient notification or rpc errors. The interval is number of
+@@ -33,4 +33,4 @@
+ # Use "sudo quantum-rootwrap /etc/quantum/rootwrap.conf" to use the real
+ # root filter facility.
+ # Change to "sudo" to skip the filtering and just run the comand directly
+-root_helper = sudo
++root_helper = sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf
+Index: quantum-2012.2/etc/l3_agent.ini
+===================================================================
+--- quantum-2012.2.orig/etc/l3_agent.ini	2012-09-11 11:12:21.000000000 -0700
++++ quantum-2012.2/etc/l3_agent.ini	2012-09-11 11:12:52.024201273 -0700
+@@ -20,7 +20,7 @@
+ # Use "sudo quantum-rootwrap /etc/quantum/rootwrap.conf" to use the real
+ # root filter facility.
+ # Change to "sudo" to skip the filtering and just run the comand directly
+-root_helper = sudo
++root_helper = sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf
+ 
+ # Allow overlapping IP (Must have kernel build with CONFIG_NET_NS=y and
+ # iproute2 package that supports namespaces).
+Index: quantum-2012.2/etc/quantum.conf
+===================================================================
+--- quantum-2012.2.orig/etc/quantum.conf	2012-09-11 11:12:21.000000000 -0700
++++ quantum-2012.2/etc/quantum.conf	2012-09-11 11:12:52.024201273 -0700
+@@ -19,10 +19,10 @@
+ # api_extensions_path =
+ 
+ # Quantum plugin provider module
+-core_plugin = quantum.plugins.sample.SamplePlugin.FakePlugin
++core_plugin = quantum.plugins.openvswitch.ovs_quantum_plugin.OVSQuantumPluginV2
+ 
+ # Paste configuration file
+-api_paste_config = api-paste.ini
++api_paste_config = /etc/quantum/api-paste.ini
+ 
+ # The strategy to be used for auth.
+ # Supported values are 'keystone'(default), 'noauth'.
+Index: quantum-2012.2/etc/quantum/plugins/linuxbridge/linuxbridge_conf.ini
+===================================================================
+--- quantum-2012.2.orig/etc/quantum/plugins/linuxbridge/linuxbridge_conf.ini	2012-09-11 11:12:21.000000000 -0700
++++ quantum-2012.2/etc/quantum/plugins/linuxbridge/linuxbridge_conf.ini	2012-09-11 11:12:52.024201273 -0700
+@@ -26,7 +26,7 @@
+ # sql_connection = mysql://root:nova@127.0.0.1:3306/quantum_linux_bridge
+ # Replace 127.0.0.1 above with the IP address of the database used by the
+ # main quantum server. (Leave it as is if the database runs on this host.)
+-sql_connection = sqlite://
++sql_connection = sqlite:///var/lib/quantum/linuxbridge.sqlite
+ # Database reconnection retry times - in event connectivity is lost
+ # set to -1 implies an infinite retry count
+ # sql_max_retries = 10
+@@ -50,6 +50,6 @@
+ # Use "sudo quantum-rootwrap /etc/quantum/rootwrap.conf" to use the real
+ # root filter facility.
+ # Change to "sudo" to skip the filtering and just run the comand directly
+-root_helper = "sudo"
++root_helper = "sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf"
+ # Use RPC messaging to interface between agent and plugin
+ # rpc = True
+Index: quantum-2012.2/etc/quantum/plugins/metaplugin/metaplugin.ini
+===================================================================
+--- quantum-2012.2.orig/etc/quantum/plugins/metaplugin/metaplugin.ini	2012-09-11 11:12:21.000000000 -0700
++++ quantum-2012.2/etc/quantum/plugins/metaplugin/metaplugin.ini	2012-09-11 11:12:52.024201273 -0700
+@@ -4,7 +4,7 @@
+ # sql_connection = mysql://root:nova@127.0.0.1:3306/ovs_quantum
+ # Replace 127.0.0.1 above with the IP address of the database used by the
+ # main quantum server. (Leave it as is if the database runs on this host.)
+-sql_connection = mysql://root:password@localhost/quantum_metaplugin?charset=utf8
++sql_connection = sqlite:////var/lib/quantum/quantum_metaplugin
+ 
+ # Database reconnection retry times - in event connectivity is lost
+ # set to -1 implgies an infinite retry count
+Index: quantum-2012.2/etc/quantum/plugins/nec/nec.ini
+===================================================================
+--- quantum-2012.2.orig/etc/quantum/plugins/nec/nec.ini	2012-09-11 11:12:21.000000000 -0700
++++ quantum-2012.2/etc/quantum/plugins/nec/nec.ini	2012-09-11 11:12:52.024201273 -0700
+@@ -6,7 +6,7 @@
+ # sql_connection = mysql://root:nova@127.0.0.1:3306/ovs_quantum
+ # Replace 127.0.0.1 above with the IP address of the database used by the
+ # main quantum server. (Leave it as is if the database runs on this host.)
+-sql_connection = sqlite://
++sql_connection = sqlite:////var/lib/quantum/nec.sqlite
+ # Database reconnection retry times - in event connectivity is lost
+ # set to -1 implies an infinite retry count
+ # sql_max_retries = 10
+@@ -27,7 +27,7 @@
+ # Use "sudo quantum-rootwrap /etc/quantum/rootwrap.conf" to use the real
+ # root filter facility.
+ # Change to "sudo" to skip the filtering and just run the comand directly
+-root_helper = sudo
++root_helper = sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf
+ 
+ [OFC]
+ # Specify OpenFlow Controller Host, Port and Driver to connect.
+Index: quantum-2012.2/etc/quantum/plugins/nicira/nvp.ini
+===================================================================
+--- quantum-2012.2.orig/etc/quantum/plugins/nicira/nvp.ini	2012-09-11 11:12:21.000000000 -0700
++++ quantum-2012.2/etc/quantum/plugins/nicira/nvp.ini	2012-09-11 11:12:52.024201273 -0700
+@@ -6,7 +6,7 @@
+ # sql_connection = mysql://root:quantum@127.0.0.1:3306/nvp_quantum
+ # Replace 127.0.0.1 above with the IP address of the database used by the
+ # main quantum server. (Leave it as is if the database runs on this host.)
+-sql_connection = sqlite://
++sql_connection = sqlite:////var/lib/quantum/nvp.sqlite
+ # Database reconnection retry times - in event connectivity is lost
+ # set to -1 implies an infinite retry count
+ # sql_max_retries = 10
+Index: quantum-2012.2/etc/quantum/plugins/openvswitch/ovs_quantum_plugin.ini
+===================================================================
+--- quantum-2012.2.orig/etc/quantum/plugins/openvswitch/ovs_quantum_plugin.ini	2012-09-11 11:12:21.000000000 -0700
++++ quantum-2012.2/etc/quantum/plugins/openvswitch/ovs_quantum_plugin.ini	2012-09-11 11:12:52.024201273 -0700
+@@ -4,7 +4,7 @@
+ # sql_connection = mysql://root:nova@127.0.0.1:3306/ovs_quantum
+ # Replace 127.0.0.1 above with the IP address of the database used by the
+ # main quantum server. (Leave it as is if the database runs on this host.)
+-sql_connection = sqlite://
++sql_connection = sqlite:////var/lib/quantum/ovs.sqlite
+ # Database reconnection retry times - in event connectivity is lost
+ # set to -1 implies an infinite retry count
+ # sql_max_retries = 10
+@@ -82,7 +82,7 @@
+ # Use "sudo quantum-rootwrap /etc/quantum/rootwrap.conf" to use the real
+ # root filter facility.
+ # Change to "sudo" to skip the filtering and just run the comand directly
+-root_helper = sudo
++root_helper = sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf
+ 
+ #-----------------------------------------------------------------------------
+ # Sample Configurations.
+Index: quantum-2012.2/etc/quantum/plugins/ryu/ryu.ini
+===================================================================
+--- quantum-2012.2.orig/etc/quantum/plugins/ryu/ryu.ini	2012-09-11 11:12:21.000000000 -0700
++++ quantum-2012.2/etc/quantum/plugins/ryu/ryu.ini	2012-09-11 11:12:52.024201273 -0700
+@@ -2,7 +2,7 @@
+ # This line MUST be changed to actually run the plugin.
+ # Example: sql_connection = mysql://root:nova@127.0.0.1:3306/ryu_quantum
+ #sql_connection = mysql://<user>:<pass>@<IP>:<port>/<dbname>
+-sql_connection = sqlite://
++sql_connection = sqlite:////var/lib/quantum/ryu.sqlite
+ 
+ [OVS]
+ integration_bridge = br-int
+@@ -16,4 +16,4 @@
+ # Use "sudo quantum-rootwrap /etc/quantum/rootwrap.conf" to use the real
+ # root filter facility.
+ # Change to "sudo" to skip the filtering and just run the comand directly
+-root_helper = sudo
++root_helper = sudo /usr/bin/quantum-rootwrap /etc/quantum/rootwrap.conf
