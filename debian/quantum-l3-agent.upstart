@@ -7,6 +7,7 @@ stop on runlevel [016]
 chdir /var/run
 
 pre-start script
+        /usr/bin/quantum-ovs-cleanup
 	mkdir -p /var/run/quantum
 	chown quantum:root /var/run/quantum
 end script
