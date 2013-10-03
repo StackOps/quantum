@@ -1,2 +1,2 @@
-#fix-quantum-configuration.patch
-#fix-ubuntu-tests.patch
+fix-quantum-configuration.patch
+fix-ubuntu-tests.patch
